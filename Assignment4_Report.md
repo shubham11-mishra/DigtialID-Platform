@@ -68,3 +68,7 @@ Template: **As a** `<user role>`, **I want** `<goal>` **so that** `<benefit>`.
 2. The system shall suspend or flag the affected Digital ID and linked documents as appropriate and prevent further use until the citizen is re-verified.
 3. The system shall notify the citizen and, where applicable, relevant authorities or services in line with policy.
 
+---
+
+*This report contains (a) the test cases for addPerson, updatePersonalDetails, and addID, and (b) eight user stories with three acceptance criteria each for the Digital ID platform.*
+
