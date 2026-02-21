@@ -1,5 +1,9 @@
 package au.edu.rmit.sct;
 
+import java.util.List;
+import java.util.Arrays;
+
+/**
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -135,11 +139,13 @@ public class Person {
         String existingBirthday = existing.length > 4 ? existing[existing.length - 1] : "";
         int age = getAgeFromBirthday(existingBirthday);
 
+        
         // Condition 1: Under 18 cannot change address
         if (age >= 0 && age < 18 && newAddress != null && !newAddress.equals(existingAddress)) {
             return false;
         }
 
+        
         // Condition 2: If birthday is being changed, no other detail can change
         boolean birthdayChanging = newBirthday != null && !newBirthday.equals(existingBirthday);
         if (birthdayChanging) {
@@ -168,6 +174,7 @@ public class Person {
         return writePersonsFile(lines);
     }
 
+}
 
     //Validation: personID
     /*
