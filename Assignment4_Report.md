@@ -14,6 +14,17 @@
 | 5. Valid birthday-only update | Change only birthday to "16-11-1990" | Person information should be updated. updatePersonalDetails returns true. | Returns true | Pass |
 
 ### addID – 5 test cases
+Part (a) Test Cases for Testing the Functions
+
+### addID – 5 test cases
+
+| Test Case | Test Data | Expected Result | Test Result | Pass/Fail |
+|-----------|-----------|-----------------|-------------|-----------|
+| 1. Valid passport | personID "56s_d%&fAB", type "passport", number "AB123456" | ID information should be added to TXT. addID returns true. | Returns true | Pass |
+| 2. Valid driver's licence | type "driverslicence", number "XY12345678" | ID information should be added. addID returns true. | Returns true | Pass |
+| 3. Valid Medicare card | type "medicare", number "123456789" | ID information should be added. addID returns true. | Returns true | Pass |
+| 4. Valid student card (under 18, no other IDs) | Person with birthday 15-11-2010 added first; then addID "studentcard", "123456789012" | ID information should be added. addID returns true. | Returns true | Pass |
+| 5. Invalid ID format | Passport "A1234567"; Medicare "12345678"; student card "12345" | ID information should not be added. addID returns false. | Returns false | Pass |
 
 
 ## Part (b) User Stories and Acceptance Criteria
