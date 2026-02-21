@@ -201,5 +201,42 @@ public class Person {
             return getAgeFromBirthday(birthday);
         }
 
+        /**
+         * addID: stores an ID document (passport, driverslicence, medicare, studentcard) if valid.
+         * Passport: 8 chars, first 2 uppercase A-Z, rest 0-9.
+         * Driver's licence: 10 chars, first 2 uppercase A-Z, rest 0-9.
+         * Medicare: 9 chars, all 0-9.
+         * Student card: only for person under 18 with no passport/drivers/medicare; 12 chars, all 0-9.
+         */
+        public boolean addID(String personID, String idType, String idNumber) {
+            if (personID == null || idType == null || idNumber == null) return false;
+            idType = idType.trim().toLowerCase();
+
+            if ("passport".equals(idType)) {
+                if (!isValidPassportNumber(idNumber)) return false;
+            } else if ("driverslicence".equals(idType) || "drivers licence".equals(idType)) {
+                if (!isValidDriversLicenceNumber(idNumber)) return false;
+            } else if ("medicare".equals(idType)) {
+                if (!isValidMedicareNumber(idNumber)) return false;
+            } else if ("studentcard".equals(idType) || "student card".equals(idType)) {
+                if (!isValidStudentCardNumber(idNumber)) return false;
+                // Student card only if person under 18 and has no passport, drivers licence, medicare
+                int age = getAgeForPerson(personID);
+                if (age < 0 || age >= 18) return false;
+                if (personHasAnyID(personID)) return false;
+            } else {
+                return false;
+            }
+
+            try {
+                Path path = Paths.get(idsFilePath);
+                if (path.getParent() != null) Files.createDirectories(path.getParent());
+                String line = personID + "|" + idType + "|" + idNumber + "\n";
+                Files.write(path, line.getBytes(), StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+                return true;
+            } catch (IOException e) {
+                return false;
+            }
+        }
     }
 
