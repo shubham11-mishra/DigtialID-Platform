@@ -1,6 +1,11 @@
 package au.edu.rmit.sct;
 
-/**
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.util.List; /**
  * Person class for the Digital ID platform (skeleton).
  * Fields, getters/setters, and constructors only.
  * addPerson, updatePersonalDetails, and addID are implemented by other team members.
@@ -65,7 +70,7 @@ public class Person {
 }
 
    // ---------- Validation: personID ----------
-    /**
+    /*
      * Condition 1: personID exactly 10 chars; first two digits in [2-9];
      * at least two special characters between positions 3 and 8 (inclusive); last two uppercase A-Z.
      * Example: "56s_d%&fAB"
@@ -145,5 +150,56 @@ public class Person {
         } catch (IOException e) {
             return false;
         }
+
+        // validating here passport, driving licence and meddicare number and etc
+        private static boolean isValidPassportNumber(String s) {
+            if (s == null || s.length() != 8) return false;
+            for (int i = 0; i < 2; i++) if (!Character.isUpperCase(s.charAt(i)) || !Character.isLetter(s.charAt(i))) return false;
+            for (int i = 2; i < 8; i++) if (!Character.isDigit(s.charAt(i))) return false;
+            return true;
+        }
+
+        private static boolean isValidDriversLicenceNumber(String s) {
+            if (s == null || s.length() != 10) return false;
+            for (int i = 0; i < 2; i++) if (!Character.isUpperCase(s.charAt(i)) || !Character.isLetter(s.charAt(i))) return false;
+            for (int i = 2; i < 10; i++) if (!Character.isDigit(s.charAt(i))) return false;
+            return true;
+        }
+
+        private static boolean isValidMedicareNumber(String s) {
+            if (s == null || s.length() != 9) return false;
+            for (int i = 0; i < 9; i++) if (!Character.isDigit(s.charAt(i))) return false;
+            return true;
+        }
+
+        private static boolean isValidStudentCardNumber(String s) {
+            if (s == null || s.length() != 12) return false;
+            for (int i = 0; i < 12; i++) if (!Character.isDigit(s.charAt(i))) return false;
+            return true;
+        }
+
+        private boolean personHasAnyID(String pid) {
+            try {
+                Path path = Paths.get(idsFilePath);
+                if (!Files.exists(path)) return false;
+                for (String line : Files.readAllLines(path)) {
+                    if (line.startsWith(pid + "|")) return true;
+                }
+            } catch (IOException e) {
+                // ignore
+            }
+            return false;
+        }
+
+        private int getAgeForPerson(String pid) {
+            List<String> lines = readPersonsFile();
+            int idx = findLineByPersonID(lines, pid);
+            if (idx < 0) return -1;
+            String[] parts = lines.get(idx).split("\\|", -1);
+            // Birthday is last field (address may contain |)
+            String birthday = parts.length > 0 ? parts[parts.length - 1] : "";
+            return getAgeFromBirthday(birthday);
+        }
+
     }
 
