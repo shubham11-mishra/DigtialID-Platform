@@ -119,4 +119,32 @@ public class Person {
     }
 
     
+   /**
+     * Returns age in years from birthday string (DD-MM-YYYY). Returns -1 if invalid.
+     */
+    public static int getAgeFromBirthday(String birthday) {
+        if (!isValidBirthday(birthday)) return -1;
+        LocalDate birth = LocalDate.parse(birthday, BIRTHDAY_FORMAT);
+        return java.time.Period.between(birth, LocalDate.now()).getYears();
+    }
+
+    /**
+     * addPerson: validates personID, address, birthday; if valid appends record to TXT and returns true.
+     */
+    public boolean addPerson() {
+        if (!isValidPersonID(personID) || !isValidAddress(address) || !isValidBirthday(birthday)) {
+            return false;
+        }
+        try {
+            Path path = Paths.get(personsFilePath);
+            if (path.getParent() != null) Files.createDirectories(path.getParent());
+            String line = personID + "|" + firstName + "|" + lastName + "|" + address + "|" + birthday + "\n";
+            Files.write(path, line.getBytes(), StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+            return true;
+        } catch (IOException e) {
+            return false;
+        }
+    }
+
+    
 }
