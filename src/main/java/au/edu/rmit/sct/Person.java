@@ -79,5 +79,9 @@ public class Person {
         String existingAddress = existing.length > 5 ? String.join("|", java.util.Arrays.copyOfRange(existing, 3, existing.length - 1)) : (existing.length > 3 ? existing[3] : "");
         String existingBirthday = existing.length > 4 ? existing[existing.length - 1] : "";
         int age = getAgeFromBirthday(existingBirthday);
-
+        
+        // Condition 1: Under 18 cannot change address
+        if (age >= 0 && age < 18 && newAddress != null && !newAddress.equals(existingAddress)) {
+            return false;
+        }
 }
