@@ -23,6 +23,12 @@ public class Person {
     /** Default path for IDs data file. */
     private static String idsFilePath = "data/ids.txt";
 
+    /** Header line for persons TXT file so the data is readable (assignment: "data should be readable"). */
+    private static final String PERSONS_HEADER = "PersonID|FirstName|LastName|Address|Birthday";
+
+    /** Header line for IDs TXT file so the data is readable. */
+    private static final String IDS_HEADER = "PersonID|IDType|IDNumber";
+
     /** Format for birthdate: DD-MM-YYYY. */
     private static final DateTimeFormatter BIRTHDAY_FORMAT = DateTimeFormatter.ofPattern("dd-MM-yyyy");
     /** Address must have State = Victoria. Format: StreetNumber|Street|City|State|Country. */
@@ -177,16 +183,28 @@ public class Person {
 
     /**
      * addPerson: validates personID, address, birthday; if valid appends record to TXT and returns true.
+     * TXT file is made readable with a header line (assignment: "data in the TXT file(s) should be readable").
+     * Duplicate personID is not inserted (one record per person).
      */
     public boolean addPerson() {
         if (!isValidPersonID(personID) || !isValidAddress(address) || !isValidBirthday(birthday)) {
             return false;
         }
+        List<String> lines = readPersonsFile();
+        // Do not insert duplicate personID (keeps file readable: one line per person)
+        if (findLineByPersonID(lines, personID) >= 0) {
+            return false;
+        }
         try {
             Path path = Paths.get(personsFilePath);
             if (path.getParent() != null) Files.createDirectories(path.getParent());
-            String line = personID + "|" + firstName + "|" + lastName + "|" + address + "|" + birthday + "\n";
-            Files.write(path, line.getBytes(), StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+            String line = personID + "|" + firstName + "|" + lastName + "|" + address + "|" + birthday;
+            if (lines.isEmpty()) {
+                // New file: write header first so data is readable
+                Files.write(path, (PERSONS_HEADER + "\n" + line + "\n").getBytes(), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+            } else {
+                Files.write(path, (line + "\n").getBytes(), StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+            }
             return true;
         } catch (IOException e) {
             return false;
@@ -196,7 +214,9 @@ public class Person {
     
     private int findLineByPersonID(List<String> lines, String personID) {
         for (int i = 0; i < lines.size(); i++) {
-            if (lines.get(i).startsWith(personID + "|")) return i;
+            String line = lines.get(i);
+            if (PERSONS_HEADER.equals(line)) continue; // skip header so it is never treated as data
+            if (line.startsWith(personID + "|")) return i;
         }
         return -1;
     }
@@ -275,17 +295,50 @@ public class Person {
         return true;
     }
 
+    /** Normalize ID type for storage (e.g. "drivers licence" -> "driverslicence") so file is consistent. */
+    private static String normalizeIdType(String idType) {
+        if (idType == null) return "";
+        return idType.trim().toLowerCase().replaceAll("\\s+", "");
+    }
+
     private boolean personHasAnyID(String pid) {
         try {
             Path path = Paths.get(idsFilePath);
             if (!Files.exists(path)) return false;
             for (String line : Files.readAllLines(path)) {
+                if (IDS_HEADER.equals(line)) continue; // skip header
                 if (line.startsWith(pid + "|")) return true;
             }
         } catch (IOException e) {
             // ignore
         }
         return false;
+    }
+
+    /** Returns true if this (personID, idType) already exists in ids file (skip header). */
+    private boolean personHasThisIDType(String pid, String normalizedIdType) {
+        try {
+            Path path = Paths.get(idsFilePath);
+            if (!Files.exists(path)) return false;
+            String prefix = pid + "|" + normalizedIdType + "|";
+            for (String line : Files.readAllLines(path)) {
+                if (IDS_HEADER.equals(line)) continue;
+                if (line.startsWith(prefix)) return true;
+            }
+        } catch (IOException e) {
+            // ignore
+        }
+        return false;
+    }
+
+    private List<String> readIdsFile() {
+        try {
+            Path path = Paths.get(idsFilePath);
+            if (!Files.exists(path)) return new ArrayList<>();
+            return new ArrayList<>(Files.readAllLines(path));
+        } catch (IOException e) {
+            return new ArrayList<>();
+        }
     }
 
     private int getAgeForPerson(String pid) {
@@ -306,17 +359,21 @@ public class Person {
      * Student card: only for person under 18 with no passport/drivers/medicare; 12 chars, all 0-9.
      */
 
+    /**
+     * addID: stores an ID document in the TXT file. File is readable with a header line.
+     * Duplicate (personID, idType) is not inserted.
+     */
     public boolean addID(String personID, String idType, String idNumber) {
         if (personID == null || idType == null || idNumber == null) return false;
-        idType = idType.trim().toLowerCase();
+        String normalizedType = normalizeIdType(idType);
 
-        if ("passport".equals(idType)) {
+        if ("passport".equals(normalizedType)) {
             if (!isValidPassportNumber(idNumber)) return false;
-        } else if ("driverslicence".equals(idType) || "drivers licence".equals(idType)) {
+        } else if ("driverslicence".equals(normalizedType)) {
             if (!isValidDriversLicenceNumber(idNumber)) return false;
-        } else if ("medicare".equals(idType)) {
+        } else if ("medicare".equals(normalizedType)) {
             if (!isValidMedicareNumber(idNumber)) return false;
-        } else if ("studentcard".equals(idType) || "student card".equals(idType)) {
+        } else if ("studentcard".equals(normalizedType)) {
             if (!isValidStudentCardNumber(idNumber)) return false;
             // Student card only if person under 18 and has no passport, drivers licence, medicare
             int age = getAgeForPerson(personID);
@@ -326,11 +383,19 @@ public class Person {
             return false;
         }
 
+        // Do not insert duplicate (personID, idType)
+        if (personHasThisIDType(personID, normalizedType)) return false;
+
+        List<String> lines = readIdsFile();
         try {
             Path path = Paths.get(idsFilePath);
             if (path.getParent() != null) Files.createDirectories(path.getParent());
-            String line = personID + "|" + idType + "|" + idNumber + "\n";
-            Files.write(path, line.getBytes(), StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+            String line = personID + "|" + normalizedType + "|" + idNumber;
+            if (lines.isEmpty()) {
+                Files.write(path, (IDS_HEADER + "\n" + line + "\n").getBytes(), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+            } else {
+                Files.write(path, (line + "\n").getBytes(), StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+            }
             return true;
         } catch (IOException e) {
             return false;
