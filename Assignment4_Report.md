@@ -1,5 +1,32 @@
 # Assignment 4 (Team-based) – Report
 
+## Part (a) Test Cases for Testing the Functions
+
+### addPerson – 5 test cases
+
+### updatePersonalDetails – 5 test cases
+| Test Case | Test Data | Expected Result | Test Result | Pass/Fail |
+|-----------|-----------|-----------------|-------------|-----------|
+| 1. Valid update (adult, odd first digit ID) | Existing person "56s_d%&fAB", update lastName to "Smith" and address | Person information should be updated in TXT. updatePersonalDetails returns true. | Returns true; file updated | Pass |
+| 2. Under-18 person – address change | Person with birthday 15-11-2010; attempt to change address | Address cannot be changed. updatePersonalDetails returns false. | Returns false | Pass |
+| 3. Birthday change with another field change | Change birthday and firstName together | When birthday is changed, no other detail may change. updatePersonalDetails returns false. | Returns false | Pass |
+| 4. Person with even first digit of ID – ID change | Person "68s_d%&fAB"; attempt to change ID to "56s_d%&fAB" | ID cannot be changed. updatePersonalDetails returns false. | Returns false | Pass |
+| 5. Valid birthday-only update | Change only birthday to "16-11-1990" | Person information should be updated. updatePersonalDetails returns true. | Returns true | Pass |
+
+### addID – 5 test cases
+Part (a) Test Cases for Testing the Functions
+
+### addID – 5 test cases
+
+| Test Case | Test Data | Expected Result | Test Result | Pass/Fail |
+|-----------|-----------|-----------------|-------------|-----------|
+| 1. Valid passport | personID "56s_d%&fAB", type "passport", number "AB123456" | ID information should be added to TXT. addID returns true. | Returns true | Pass |
+| 2. Valid driver's licence | type "driverslicence", number "XY12345678" | ID information should be added. addID returns true. | Returns true | Pass |
+| 3. Valid Medicare card | type "medicare", number "123456789" | ID information should be added. addID returns true. | Returns true | Pass |
+| 4. Valid student card (under 18, no other IDs) | Person with birthday 15-11-2010 added first; then addID "studentcard", "123456789012" | ID information should be added. addID returns true. | Returns true | Pass |
+| 5. Invalid ID format | Passport "A1234567"; Medicare "12345678"; student card "12345" | ID information should not be added. addID returns false. | Returns false | Pass |
+
+
 ## Part (b) User Stories and Acceptance Criteria
 
 Template: **As a** `<user role>`, **I want** `<goal>` **so that** `<benefit>`.
